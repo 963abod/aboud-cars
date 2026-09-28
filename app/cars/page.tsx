@@ -83,21 +83,21 @@ export default function CarsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0A0A0C] text-white flex flex-col justify-between selection:bg-[#D4AF37]/30 selection:text-[#D4AF37] relative">
+    <main className="min-h-screen bg-zinc-950 text-white flex flex-col justify-between selection:bg-amber-500/30 selection:text-amber-400 relative overflow-x-hidden">
       {/* Background Ambient Glow */}
-      <div className="absolute top-0 right-1/4 w-[600px] h-[400px] bg-[#D4AF37]/5 blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 right-1/4 w-full max-w-[600px] h-[400px] bg-amber-500/5 blur-[120px] pointer-events-none rounded-full" />
 
       {/* Top Header */}
-      <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between border-b border-white/10">
+      <header className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between border-b border-white/10">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full border border-[#D4AF37]/40 bg-[#16161a] flex items-center justify-center text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.15)] group-hover:border-[#D4AF37] transition-colors">
+          <div className="w-10 h-10 rounded-full border border-amber-500/30 bg-amber-500/10 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:border-amber-500/50 transition-colors">
             <Car className="w-5 h-5" />
           </div>
           <div>
             <span className="text-xl font-bold tracking-wider text-white block leading-none font-serif">
               ABOUD CARS
             </span>
-            <span className="text-xs text-[#D4AF37] tracking-widest block mt-1">
+            <span className="text-xs text-amber-400 tracking-widest block mt-1">
               عبود للسيارات
             </span>
           </div>
@@ -105,7 +105,7 @@ export default function CarsPage() {
 
         <Link
           href="/"
-          className="flex items-center gap-2 text-xs text-gray-300 hover:text-[#D4AF37] bg-white/5 border border-white/10 hover:border-[#D4AF37]/40 px-4 py-2 rounded-full backdrop-blur-md transition-all duration-300"
+          className="flex items-center gap-2 text-xs text-zinc-300 hover:text-amber-400 bg-white/5 border border-white/10 hover:border-amber-500/30 px-4 py-2 rounded-full backdrop-blur-md transition-all duration-300"
         >
           <span>الرئيسية</span>
           <ArrowRight className="w-4 h-4" />
@@ -113,36 +113,36 @@ export default function CarsPage() {
       </header>
 
       {/* Hero Title Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-12 pb-8 text-right">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-medium mb-4">
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-8 text-right">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium mb-4">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>أسطول السيارات الفاخرة</span>
         </div>
         <h1 className="text-3xl md:text-5xl font-bold font-serif text-white tracking-wide">
-          معرض السيارات <span className="text-[#D4AF37]">الفاخرة</span>
+          معرض السيارات <span className="text-amber-400">الفاخرة</span>
         </h1>
-        <p className="text-gray-400 text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
+        <p className="text-zinc-400 text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
           تصفح مجموعتنا المختارة بعناية من أحدث السيارات العالمية في دمشق. تواصل معنا مباشرة للاستفسار والحجز.
         </p>
       </section>
 
       {/* Car Grid Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 mb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+      <section className="relative z-10 w-full max-w-7xl mx-auto my-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4">
           {LUXURY_CARS.map((car) => (
             <div
               key={car.id}
-              className="group bg-[#121216] rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(212,175,55,0.25)] hover:border-[#D4AF37]/50 flex flex-col justify-between"
+              className="group bg-zinc-900/70 backdrop-blur-md border border-white/10 hover:border-amber-500/40 rounded-2xl transition-all duration-300 shadow-2xl flex flex-col justify-between overflow-hidden w-full"
             >
               {/* Car Image Container */}
-              <div className="relative h-64 md:h-72 w-full overflow-hidden bg-[#18181c]">
+              <div className="relative w-full overflow-hidden bg-zinc-900 rounded-t-2xl">
                 <img
                   src={car.image}
                   alt={car.name}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="aspect-[16/10] object-cover w-full rounded-t-2xl group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121216] via-transparent to-transparent opacity-90" />
-                <div className="absolute top-4 right-4 bg-[#0A0A0C]/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs text-[#D4AF37] font-mono">
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-90" />
+                <div className="absolute top-4 right-4 bg-zinc-900/80 backdrop-blur-md px-3 py-1 rounded-full border border-amber-500/20 text-xs text-amber-400 font-mono">
                   {car.specs.year}
                 </div>
               </div>
@@ -150,47 +150,47 @@ export default function CarsPage() {
               {/* Car Content */}
               <div className="p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold font-serif text-white group-hover:text-[#D4AF37] transition-colors duration-300">
+                  <h2 className="text-2xl font-bold font-serif text-white group-hover:text-amber-400 transition-colors duration-300">
                     {car.name}
                   </h2>
-                  <p className="text-xs text-gray-400 font-sans tracking-wide mt-1 mb-6">
+                  <p className="text-xs text-zinc-400 font-sans tracking-wide mt-1 mb-6">
                     {car.nameEn}
                   </p>
 
                   {/* Specs Badges Grid */}
-                  <div className="grid grid-cols-2 gap-3 mb-6 text-xs text-gray-300">
+                  <div className="grid grid-cols-2 gap-3 mb-6 text-xs text-zinc-300">
                     {/* سنة الصنع */}
-                    <div className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-2.5">
-                      <Calendar className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                    <div className="bg-zinc-800/50 border border-white/5 rounded-xl p-2.5 text-zinc-300 flex items-center gap-2.5">
+                      <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500">سنة الصنع</span>
+                        <span className="text-[10px] text-zinc-400">سنة الصنع</span>
                         <span className="font-semibold text-white">{car.specs.year}</span>
                       </div>
                     </div>
 
                     {/* سعة المحرك */}
-                    <div className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-2.5">
-                      <Gauge className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                    <div className="bg-zinc-800/50 border border-white/5 rounded-xl p-2.5 text-zinc-300 flex items-center gap-2.5">
+                      <Gauge className="w-4 h-4 text-amber-400 shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500">سعة المحرك</span>
+                        <span className="text-[10px] text-zinc-400">سعة المحرك</span>
                         <span className="font-semibold text-white">{car.specs.engine}</span>
                       </div>
                     </div>
 
                     {/* ناقل الحركة */}
-                    <div className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-2.5">
-                      <Sliders className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                    <div className="bg-zinc-800/50 border border-white/5 rounded-xl p-2.5 text-zinc-300 flex items-center gap-2.5">
+                      <Sliders className="w-4 h-4 text-amber-400 shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500">ناقل الحركة</span>
+                        <span className="text-[10px] text-zinc-400">ناقل الحركة</span>
                         <span className="font-semibold text-white">{car.specs.transmission}</span>
                       </div>
                     </div>
 
                     {/* نوع الوقود */}
-                    <div className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-2.5">
-                      <Fuel className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                    <div className="bg-zinc-800/50 border border-white/5 rounded-xl p-2.5 text-zinc-300 flex items-center gap-2.5">
+                      <Fuel className="w-4 h-4 text-amber-400 shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500">نوع الوقود</span>
+                        <span className="text-[10px] text-zinc-400">نوع الوقود</span>
                         <span className="font-semibold text-white">{car.specs.fuel}</span>
                       </div>
                     </div>
@@ -202,7 +202,7 @@ export default function CarsPage() {
                   href={getWhatsAppUrl(car.name)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3.5 px-4 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-black border border-[#25D366]/30 hover:border-[#25D366] font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-sm group/btn"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl py-3 px-4 flex items-center justify-center gap-2 transition-colors w-full text-sm group/btn"
                 >
                   <MessageCircle className="w-4 h-4 fill-current group-hover/btn:scale-110 transition-transform" />
                   <span>استفسر عبر واتساب</span>
@@ -214,14 +214,14 @@ export default function CarsPage() {
       </section>
 
       {/* Shared Luxury Footer */}
-      <footer className="relative z-10 w-full border-t border-white/10 bg-[#070709] py-10 px-6 mt-auto">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-sm text-gray-400">
+      <footer className="relative z-10 w-full border-t border-white/10 bg-zinc-950 py-10 px-4 sm:px-6 mt-auto">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-sm text-zinc-400">
           {/* Brand Info */}
           <div className="space-y-2 text-right">
             <h2 className="text-lg font-bold text-white tracking-wider font-serif">
-              ABOUD CARS <span className="text-[#D4AF37] text-sm font-sans mr-2">| عبود للسيارات</span>
+              ABOUD CARS <span className="text-amber-400 text-sm font-sans mr-2">| عبود للسيارات</span>
             </h2>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed">
               معرض السيارات الفاخرة والأحدث في دمشق. أسلوب فاخر وتجربة شحن وبيع لا مثيل لها.
             </p>
           </div>
@@ -229,21 +229,21 @@ export default function CarsPage() {
           {/* Location & Quick Info */}
           <div className="flex flex-col items-start md:items-center space-y-2">
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#D4AF37]" />
+              <MapPin className="w-4 h-4 text-amber-400" />
               <span>دمشق - سوريا (Damascus, Syria)</span>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-[#D4AF37]" />
+              <Phone className="w-4 h-4 text-amber-400" />
               <span dir="ltr">+963 900 000 000</span>
             </div>
           </div>
 
           {/* Copyright & Disclaimer */}
           <div className="text-right md:text-left space-y-1">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-zinc-500">
               &copy; {new Date().getFullYear()} Aboud Cars. جميع الحقوق محفوظة.
             </p>
-            <div className="flex items-center gap-1 text-[11px] text-[#D4AF37]/80 justify-start md:justify-end">
+            <div className="flex items-center gap-1 text-[11px] text-amber-400/80 justify-start md:justify-end">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>فخامة لا تُضاهى، جودة مضمونة</span>
             </div>

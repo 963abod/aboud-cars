@@ -12,7 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className="bg-[#0A0A0C] text-white antialiased">{children}</body>
+      <body className="bg-zinc-950 text-white antialiased">{children}</body>
     </html>
   )
 }
