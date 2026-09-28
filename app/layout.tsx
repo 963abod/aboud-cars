@@ -1,5 +1,7 @@
+import './globals.css'
+
 export const metadata = {
-  title: 'Aboud Cars',
+  title: 'Aboud Cars | عبود للسيارات',
   description: 'معرض سيارات فخم في دمشق',
 }
 
@@ -10,7 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className="bg-[#0A0A0C] text-white">{children}</body>
+      <body className="bg-[#0A0A0C] text-white antialiased">{children}</body>
     </html>
   )
 }
