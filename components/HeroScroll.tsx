@@ -147,44 +147,45 @@ export default function HeroScroll() {
     // ------------------------------------------------------------
 
     const loadFrame = (index: number) => {
-      if (destroyed) return;
-      if (index < 0 || index >= totalFrames) return;
-      if (images[index]) return;
+  if (destroyed) return;
+  if (index < 0 || index >= totalFrames) return;
 
-      const img = new Image();
+  // إذا الصورة موجودة مسبقًا، لا نعيد تحميلها
+  if (images[index]) return;
 
-      img.decoding = "async";
-      img.src = `/frames/frame_${String(index + 1).padStart(4, "0")}.jpg`;
+  const img = new Image();
 
-      img.onload = () => {
-        if (destroyed) return;
+  img.decoding = "async";
 
-        images[index] = img;
+  img.onload = () => {
+    if (destroyed) return;
 
-        if (index === 0) {
-          resizeCanvas();
-          renderFrame(0);
-        }
+    images[index] = img;
 
-        // إذا هذا هو الفريم المطلوب حاليًا
-        if (index === targetFrame) {
-          renderFrame(index);
-        }
-      };
+    // إذا هذا هو الفريم المطلوب حاليًا، ارسمه فورًا
+    if (index === targetFrame) {
+      renderFrame(index);
+    }
+  };
 
-      img.onerror = () => {
-        images[index] = null;
-      };
+  img.onerror = () => {
+    if (images[index] === img) {
+      images[index] = null;
+    }
+  };
 
-      images[index] = img;
-    };
+  img.src = `/frames/frame_${String(index + 1).padStart(4, "0")}.jpg`;
 
+  // مهم: نخزن الصورة مباشرة حتى لا يتم إنشاء
+  // طلب تحميل ثاني لنفس الفريم
+  images[index] = img;
+};
     // ------------------------------------------------------------
     // Smart preloading
     // ------------------------------------------------------------
 
     const preloadAround = (frame: number) => {
-      const range = window.innerWidth < 768 ? 12 : 20;
+  const range = window.innerWidth < 768 ? 18 : 30;
 
       // الفريم الحالي أولاً
       loadFrame(frame);
