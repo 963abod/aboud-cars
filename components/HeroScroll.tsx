@@ -1,48 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function HeroScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // Refs للتحكم بالنصوص بسلاسة 60fps بدون إعادة تصيير الصفحة
   const introOverlayRef = useRef<HTMLDivElement>(null);
-  const midOverlayRef = useRef<HTMLDivElement>(null);
   const outroOverlayRef = useRef<HTMLDivElement>(null);
 
-  const [images, setImages] = useState<HTMLImageElement[]>([]);
   const totalFrames = 480;
 
-  // تحميل الصور المسبق
-  useEffect(() => {
-    const loadedImages: HTMLImageElement[] = [];
-    for (let i = 1; i <= totalFrames; i++) {
-      const img = new Image();
-      img.src = `/frames/frame_${String(i).padStart(4, "0")}.jpg`;
-      loadedImages.push(img);
-    }
-    setImages(loadedImages);
-  }, []);
-
-  // التحكم بالكانفاس وحركة السكرول
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container || images.length === 0) return;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const images: HTMLImageElement[] = [];
+    let lastRenderedIndex = 0;
+
     const renderFrame = (index: number) => {
       const img = images[index];
-      if (!img || !img.complete) return;
+      const targetImg =
+        img && img.complete
+          ? img
+          : images[lastRenderedIndex] && images[lastRenderedIndex].complete
+          ? images[lastRenderedIndex]
+          : null;
+
+      if (!targetImg) return;
+      lastRenderedIndex = img && img.complete ? index : lastRenderedIndex;
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const displayWidth = window.innerWidth;
       const displayHeight = window.innerHeight;
 
-      if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
+      if (
+        canvas.width !== displayWidth * dpr ||
+        canvas.height !== displayHeight * dpr
+      ) {
         canvas.width = displayWidth * dpr;
         canvas.height = displayHeight * dpr;
       }
@@ -50,28 +48,41 @@ export default function HeroScroll() {
       ctx.save();
       ctx.scale(dpr, dpr);
 
-      // تغطية كاملة ومتناسقة للموبايل والكمبيوتر (Cover)
-      const hRatio = displayWidth / img.width;
-      const vRatio = displayHeight / img.height;
+      const hRatio = displayWidth / targetImg.width;
+      const vRatio = displayHeight / targetImg.height;
       const ratio = Math.max(hRatio, vRatio);
 
-      const centerShiftX = (displayWidth - img.width * ratio) / 2;
-      const centerShiftY = (displayHeight - img.height * ratio) / 2;
+      const centerShiftX = (displayWidth - targetImg.width * ratio) / 2;
+      const centerShiftY = (displayHeight - targetImg.height * ratio) / 2;
 
       ctx.clearRect(0, 0, displayWidth, displayHeight);
       ctx.drawImage(
-        img,
+        targetImg,
         0,
         0,
-        img.width,
-        img.height,
+        targetImg.width,
+        targetImg.height,
         centerShiftX,
         centerShiftY,
-        img.width * ratio,
-        img.height * ratio
+        targetImg.width * ratio,
+        targetImg.height * ratio
       );
       ctx.restore();
     };
+
+    // تحميل الفريمات وضمان رسم أول فريم فور وصوله
+    for (let i = 1; i <= totalFrames; i++) {
+      const img = new Image();
+      img.src = `/frames/frame_${String(i).padStart(4, "0")}.jpg`;
+      if (i === 1) {
+        img.onload = () => renderFrame(0);
+      }
+      images.push(img);
+    }
+
+    if (images[0] && images[0].complete) {
+      renderFrame(0);
+    }
 
     let animationFrameId: number;
 
@@ -82,145 +93,375 @@ export default function HeroScroll() {
 
       const progress = Math.min(Math.max(-rect.top / totalScrollable, 0), 1);
 
-      // 1. أول 15% من السكرول: شاشة البداية الثابتة والعدادات
+      // الواجهة الأولى: تختفي مع أول 18% سكرول
       if (introOverlayRef.current) {
-        const introOpacity = Math.max(1 - progress / 0.15, 0);
+        const introOpacity = Math.max(1 - progress / 0.18, 0);
         introOverlayRef.current.style.opacity = `${introOpacity}`;
-        introOverlayRef.current.style.transform = `translateY(-${(1 - introOpacity) * 40}px)`;
-        introOverlayRef.current.style.pointerEvents = introOpacity > 0.1 ? "auto" : "none";
+        introOverlayRef.current.style.transform = `translateY(-${(1 - introOpacity) * 35}px)`;
+        introOverlayRef.current.style.pointerEvents =
+          introOpacity > 0.05 ? "auto" : "none";
       }
 
-      // 2. من 15% إلى 85%: يبدأ تسلسل الصور بحركة سلسة
+      // تسلسل الفريمات: من 15% حتى 90%
       let frameIndex = 0;
-      if (progress > 0.15 && progress < 0.85) {
-        const sequenceProgress = (progress - 0.15) / 0.7;
+      if (progress > 0.15 && progress < 0.9) {
+        const sequenceProgress = (progress - 0.15) / 0.75;
         frameIndex = Math.min(
           Math.floor(sequenceProgress * (totalFrames - 1)),
           totalFrames - 1
         );
-      } else if (progress >= 0.85) {
+      } else if (progress >= 0.9) {
         frameIndex = totalFrames - 1;
       }
 
-      // نص مميز بمنتصف السكرول
-      if (midOverlayRef.current) {
-        let midOpacity = 0;
-        if (progress >= 0.4 && progress <= 0.6) {
-          midOpacity = 1 - Math.abs(progress - 0.5) / 0.1;
-        }
-        midOverlayRef.current.style.opacity = `${Math.max(midOpacity, 0)}`;
-        midOverlayRef.current.style.transform = `translateY(${midOpacity > 0 ? (1 - midOpacity) * 20 : 20}px)`;
-      }
-
-      // 3. آخر 15%: ظهور زر المعرض والختام
+      // الواجهة الأخيرة (زر المعرض): تظهر بآخر 12%
       if (outroOverlayRef.current) {
-        const outroOpacity = Math.max((progress - 0.85) / 0.15, 0);
+        const outroOpacity = Math.max((progress - 0.88) / 0.12, 0);
         outroOverlayRef.current.style.opacity = `${outroOpacity}`;
-        outroOverlayRef.current.style.transform = `translateY(${(1 - outroOpacity) * 30}px)`;
-        outroOverlayRef.current.style.pointerEvents = outroOpacity > 0.1 ? "auto" : "none";
+        outroOverlayRef.current.style.transform = `translateY(${(1 - outroOpacity) * 25}px)`;
+        outroOverlayRef.current.style.pointerEvents =
+          outroOpacity > 0.05 ? "auto" : "none";
       }
 
       animationFrameId = requestAnimationFrame(() => renderFrame(frameIndex));
     };
 
-    renderFrame(0);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
+    window.addEventListener("resize", () => {
+      renderFrame(lastRenderedIndex);
+      handleScroll();
+    });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [images]);
+  }, []);
 
   return (
-    <section ref={containerRef} className="relative h-[550vh] bg-[#0A0A0C]">
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
-        {/* الكانفاس التفاعلي */}
-        <canvas ref={canvasRef} className="w-full h-full block" />
+    <section
+      ref={containerRef}
+      style={{
+        position: "relative",
+        height: "500vh",
+        backgroundColor: "#0A0A0C",
+      }}
+    >
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          width: "100%",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* الكانفاس */}
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "block",
+          }}
+        />
 
-        {/* طبقة تظليل خفيفة جداً لتحسين وضوح النصوص */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80 pointer-events-none" />
+        {/* تظليل ناعم لضمان قراءة النصوص فوق ألوان السيارة */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.8) 100%)",
+            pointerEvents: "none",
+          }}
+        />
 
-        {/* 1. واجهة البداية: اسم الشركة، العدادات، والتفاصيل */}
+        {/* واجهة البداية: الاسم + العدادات مرتبة أفقياً */}
         <div
           ref={introOverlayRef}
-          className="absolute inset-0 flex flex-col items-center justify-between py-16 px-6 text-center z-10 transition-transform duration-75"
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "50px 16px 36px 16px",
+            textAlign: "center",
+            zIndex: 10,
+            boxSizing: "border-box",
+            transition: "opacity 0.1s ease-out, transform 0.1s ease-out",
+          }}
         >
-          <div className="pt-8 flex flex-col items-center">
-            <span className="px-3.5 py-1 rounded-full text-xs font-medium tracking-wider uppercase bg-white/10 text-neutral-300 backdrop-blur-md border border-white/10 mb-4">
+          {/* العنوان */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              marginTop: "8px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "#e5e7eb",
+                backgroundColor: "rgba(255, 255, 255, 0.12)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                padding: "4px 14px",
+                borderRadius: "9999px",
+                marginBottom: "12px",
+              }}
+            >
               الفخامة والأداء
             </span>
-            <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight text-white drop-shadow-lg">
+            <h1
+              style={{
+                fontSize: "clamp(2.2rem, 7vw, 3.8rem)",
+                fontWeight: 800,
+                color: "#ffffff",
+                margin: 0,
+                textShadow: "0 2px 10px rgba(0,0,0,0.6)",
+              }}
+            >
               Aboud Cars
             </h1>
-            <p className="mt-3 text-neutral-300 text-sm md:text-lg max-w-md">
+            <p
+              style={{
+                fontSize: "clamp(0.85rem, 3.5vw, 1.05rem)",
+                color: "#d1d5db",
+                marginTop: "8px",
+                maxWidth: "340px",
+                lineHeight: 1.5,
+              }}
+            >
               بوابتك نحو أقوى وأفخم السيارات العالمية بأعلى معايير الجودة
             </p>
           </div>
 
-          {/* العدادات والإحصائيات */}
-          <div className="w-full max-w-2xl grid grid-cols-3 gap-3 md:gap-6 bg-black/40 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-white/10">
-            <div>
-              <p className="text-2xl md:text-4xl font-bold text-white tracking-tight">+200</p>
-              <p className="text-[11px] md:text-sm text-neutral-400 mt-1 font-medium">سيارة فاخرة</p>
+          {/* بطاقة العدادات أفقياً */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              maxWidth: "440px",
+              backgroundColor: "rgba(10, 10, 12, 0.65)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              borderRadius: "18px",
+              padding: "16px 10px",
+              direction: "rtl",
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "1.6rem",
+                  fontWeight: "bold",
+                  color: "#ffffff",
+                  lineHeight: 1.2,
+                }}
+              >
+                +200
+              </div>
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#9ca3af",
+                  marginTop: "4px",
+                }}
+              >
+                سيارة فاخرة
+              </div>
             </div>
-            <div className="border-x border-white/10">
-              <p className="text-2xl md:text-4xl font-bold text-amber-400 tracking-tight">95%</p>
-              <p className="text-[11px] md:text-sm text-neutral-400 mt-1 font-medium">نسبة الثقة والرضا</p>
+
+            <div
+              style={{
+                width: "1px",
+                height: "36px",
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+              }}
+            />
+
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "1.6rem",
+                  fontWeight: "bold",
+                  color: "#fbbf24",
+                  lineHeight: 1.2,
+                }}
+              >
+                95%
+              </div>
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#9ca3af",
+                  marginTop: "4px",
+                }}
+              >
+                نسبة الثقة والرضا
+              </div>
             </div>
-            <div>
-              <p className="text-2xl md:text-4xl font-bold text-white tracking-tight">100%</p>
-              <p className="text-[11px] md:text-sm text-neutral-400 mt-1 font-medium">فحص وضمان فني</p>
+
+            <div
+              style={{
+                width: "1px",
+                height: "36px",
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+              }}
+            />
+
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "1.6rem",
+                  fontWeight: "bold",
+                  color: "#ffffff",
+                  lineHeight: 1.2,
+                }}
+              >
+                100%
+              </div>
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#9ca3af",
+                  marginTop: "4px",
+                }}
+              >
+                فحص وضمان فني
+              </div>
             </div>
           </div>
 
           {/* مؤشر التمرير */}
-          <div className="flex flex-col items-center gap-2 opacity-80 animate-pulse">
-            <span className="text-xs text-neutral-400">مرر للأسفل لاكتشاف التفاصيل</span>
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "6px",
+              color: "#9ca3af",
+              fontSize: "12px",
+            }}
+          >
+            <span>مرر للأسفل لاكتشاف التفاصيل</span>
+            <svg
+              style={{ width: "20px", height: "20px", color: "#ffffff" }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
             </svg>
           </div>
         </div>
 
-        {/* 2. نص تفاعلي بمنتصف الرحلة */}
-        <div
-          ref={midOverlayRef}
-          style={{ opacity: 0 }}
-          className="absolute inset-0 flex items-center justify-center text-center px-4 pointer-events-none z-10"
-        >
-          <div className="bg-black/40 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10">
-            <h2 className="text-2xl md:text-5xl font-bold text-white drop-shadow-md">
-              هندسة تفوق التوقعات
-            </h2>
-            <p className="mt-2 text-xs md:text-sm text-neutral-300">
-              دقة في التفاصيل، وقوة تمنحك الثقة على الطريق
-            </p>
-          </div>
-        </div>
-
-        {/* 3. واجهة النهاية: زر معرض السيارات */}
+        {/* واجهة النهاية: زر معرض السيارات */}
         <div
           ref={outroOverlayRef}
-          style={{ opacity: 0 }}
-          className="absolute inset-0 flex flex-col items-center justify-end pb-20 px-6 text-center z-10 pointer-events-none"
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingBottom: "60px",
+            paddingLeft: "20px",
+            paddingRight: "20px",
+            textAlign: "center",
+            zIndex: 10,
+            pointerEvents: "none",
+            opacity: 0,
+            transition: "opacity 0.15s ease-out, transform 0.15s ease-out",
+          }}
         >
-          <div className="bg-black/60 backdrop-blur-lg p-6 md:p-8 rounded-3xl border border-white/10 max-w-md w-full shadow-2xl">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          <div
+            style={{
+              backgroundColor: "rgba(10, 10, 12, 0.75)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              borderRadius: "24px",
+              padding: "24px 20px",
+              maxWidth: "400px",
+              width: "100%",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
+              boxSizing: "border-box",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color: "#fff",
+                margin: "0 0 8px 0",
+              }}
+            >
               جاهز لاختيار سيارتك القادمة؟
             </h3>
-            <p className="text-neutral-400 text-xs md:text-sm mb-6">
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: "#9ca3af",
+                margin: "0 0 20px 0",
+              }}
+            >
               استعرض أحدث الموديلات المتوفرة لدينا واطلب تجربة القيادة فوراً
             </p>
             <a
               href="#showroom"
-              className="inline-flex items-center justify-center w-full py-3.5 px-6 rounded-xl bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-colors shadow-lg active:scale-95 duration-150"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                padding: "14px 20px",
+                borderRadius: "14px",
+                backgroundColor: "#ffffff",
+                color: "#000000",
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                textDecoration: "none",
+                boxSizing: "border-box",
+              }}
             >
-              دخول معرض السيارات
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <span>دخول معرض السيارات</span>
+              <svg
+                style={{
+                  width: "18px",
+                  height: "18px",
+                  marginRight: "8px",
+                }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
               </svg>
             </a>
           </div>
